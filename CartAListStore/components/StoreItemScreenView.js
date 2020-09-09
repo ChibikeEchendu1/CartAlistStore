@@ -13,6 +13,7 @@ import {VARIABLES} from '../utils/Variables';
 import Normalize from '../utils/Normalize';
 import FindState from '../utils/FindState';
 import FindStateAdd from '../utils/FindStateAdd';
+import AsyncStorage from '@react-native-community/async-storage';
 
 import {
   emailChanged,
@@ -27,7 +28,7 @@ import {connect} from 'react-redux';
 import {Input, Button} from 'react-native-elements';
 import BarcodeFinder from './BarcodeFinder';
 const MIDHIGHT = Dimensions.get('window').height / 2;
-const DURATION = 1000;
+const DURATION = 200;
 class ProductScanRNCamera extends Component {
   constructor(props) {
     super(props);
@@ -44,14 +45,32 @@ class ProductScanRNCamera extends Component {
       error: '',
       flash: false,
       Current: '',
+      StoreItems: {},
     };
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     const Check = this.props.route.params || false;
     if (Check) {
       this.props.ClearItemStore();
     }
+    let StoreItems = await AsyncStorage.getItem('StoreItems');
+    StoreItems = JSON.parse(StoreItems);
+    console.log(StoreItems);
+
+    this.setState({StoreItems});
+  }
+
+  async componentDidUpdate(prevProps, prevState) {
+    const Check = this.props.route.params || false;
+    if (Check) {
+      this.props.ClearItemStore();
+    }
+    let StoreItems = await AsyncStorage.getItem('StoreItems');
+    StoreItems = JSON.parse(StoreItems);
+    console.log(StoreItems);
+
+    this.setState({StoreItems});
   }
 
   async _handlePress() {
@@ -75,20 +94,14 @@ class ProductScanRNCamera extends Component {
   }
 
   onBarCodeRead(scanResult) {
-    console.log('found');
+    console.log('foundandroid');
 
     if (scanResult.data != null) {
-      if (!this.barcodeCodes.includes(scanResult.data)) {
-        Vibration.vibrate(DURATION);
-        if (!this.state.found) {
-          this.barcodeCodes.push(scanResult.data);
-          this.setState({Current: scanResult.data, error: '', found: true});
-          console.warn('onBarCodeRead call');
-        } else {
-          this.setState({error: 'ADD PRICE FOR OLD ITEM'});
-        }
-      } else {
-        this.setState({error: 'Item Is Already Added'});
+      if (this.state.StoreItems[scanResult.data]) {
+        console.log('moving');
+        this.props.navigation.navigate('EditMe', {
+          item: this.state.StoreItems[scanResult.data],
+        });
       }
     }
     return;
@@ -104,7 +117,6 @@ class ProductScanRNCamera extends Component {
           BARCODE: this.state.Current,
           PICTURE: data,
         });
-        console.log(data.uri);
       }
     } else {
       this.setState({error: 'NO BARCODE'});
@@ -117,19 +129,11 @@ class ProductScanRNCamera extends Component {
 
   onAddPress() {
     this.setState({Current: '', found: false, error: ''});
-    if (
-      FindStateAdd(
-        this.state.found,
-        this.props.Code,
-        this.props.Name,
-        this.props.email,
-      )
-    ) {
+    if (FindStateAdd(this.state.found, this.props.Code, this.props.Name)) {
       this.props.AddItemStore(
         this.state.Current,
         this.props.Code,
         this.props.Name,
-        this.props.email,
       );
     } else {
       this.setState({error: 'Fill In all the Options'});
@@ -138,10 +142,6 @@ class ProductScanRNCamera extends Component {
 
   onCodeC(text) {
     this.props.CodeChanged(text);
-  }
-
-  onEmailC(text) {
-    this.props.emailChanged(text);
   }
   pendingView() {
     return (
@@ -258,162 +258,6 @@ class ProductScanRNCamera extends Component {
               iconRight
             />
             <Text style={{color: 'white'}}>No barcode Item</Text>
-          </View>
-          <Input
-            placeholder="Item Name"
-            onChangeText={this.onEmailC.bind(this)}
-            value={this.props.email}
-            inputStyle={{
-              marginLeft: 7,
-              color: 'white',
-            }}
-            placeholderTextColor="#FFF"
-            errorStyle={{color: 'red'}}
-            errorMessage={this.props.CodeError}
-            inputContainerStyle={{
-              width: '100%',
-              borderWidth: 0.3,
-              marginTop: 10,
-            }}
-          />
-          <View
-            style={{
-              display: 'flex',
-              flexDirection: 'row',
-              alignSelf: 'flex-start',
-              marginTop: 5,
-              alignContent: 'space-between',
-            }}>
-            <View style={{flex: 1}}>
-              <Input
-                placeholder="Quantity"
-                onChangeText={this.onCodeC.bind(this)}
-                value={this.props.Code}
-                inputStyle={{
-                  marginLeft: 7,
-                  color: 'white',
-                }}
-                placeholderTextColor="#FFF"
-                keyboardType="number-pad"
-                errorStyle={{color: 'red'}}
-                errorMessage={this.props.CodeError}
-                inputContainerStyle={{
-                  width: '100%',
-                  borderWidth: 0.3,
-                }}
-              />
-            </View>
-            <View style={{flex: 1}}>
-              <Input
-                placeholder="Price"
-                value={this.props.Name}
-                onChangeText={this.onNameC.bind(this)}
-                keyboardType="number-pad"
-                errorStyle={{color: 'red'}}
-                inputStyle={{
-                  marginLeft: 7,
-                  color: 'white',
-                }}
-                placeholderTextColor="#FFF"
-                errorMessage={this.props.NameError}
-                inputContainerStyle={{
-                  width: '100%',
-                  borderWidth: 0.3,
-                  // marginTop: 30,
-                }}
-              />
-            </View>
-          </View>
-          <View style={{display: 'flex', flexDirection: 'row'}}>
-            <Button
-              onPress={() => {
-                this.barcodeCodes.pop();
-                this.setState({Current: '', found: false, error: ''});
-                this.props.NameChanged('');
-                this.props.CodeChanged('');
-              }}
-              title=""
-              type="outline"
-              raised
-              containerStyle={{
-                marginTop: 20,
-                alignSelf: 'center',
-                marginRight: 20,
-                width: '15%',
-              }}
-              titleStyle={{color: 'white', marginRight: 10}}
-              buttonStyle={{
-                backgroundColor: '#0379CC',
-                borderColor: '#0379CC',
-                width: '100%',
-              }}
-              icon={<Icon name="undo" size={20} color="white" />}
-              iconRight
-            />
-            <Button
-              onPress={this.onAddPress.bind(this)}
-              title="ADD"
-              type="outline"
-              raised
-              containerStyle={{
-                marginTop: 20,
-                alignSelf: 'center',
-                marginRight: 20,
-                width: '35%',
-              }}
-              titleStyle={{color: 'white', marginRight: 10}}
-              buttonStyle={{
-                backgroundColor: FindState(
-                  this.state.found,
-                  this.props.Code,
-                  this.props.Name,
-                  this.props.email,
-                ),
-                borderColor: FindState(
-                  this.state.found,
-                  this.props.Code,
-                  this.props.Name,
-                  this.props.email,
-                ),
-                width: '100%',
-              }}
-              icon={<Icon name="plus-circle" size={20} color="white" />}
-              iconRight
-            />
-            <Button
-              onPress={() => {
-                if (this.props.items.length > 0) {
-                  this.props.navigation.navigate('ItemsConfirm', {
-                    items: this.props.items,
-                  });
-                } else {
-                  this.setState({error: 'Scan Items First'});
-                }
-              }}
-              title="Submit"
-              type="outline"
-              raised
-              containerStyle={{
-                marginTop: 20,
-                alignSelf: 'center',
-                marginRight: 20,
-                width: '35%',
-              }}
-              titleStyle={{color: 'white', marginRight: 10}}
-              buttonStyle={{
-                backgroundColor:
-                  this.props.items.length > 0
-                    ? VARIABLES.green2
-                    : VARIABLES.oragne,
-                borderColor:
-                  this.props.items.length > 0
-                    ? VARIABLES.green2
-                    : VARIABLES.oragne,
-                width: '100%',
-              }}
-              icon={<Icon name="check-circle" size={20} color="white" />}
-              iconRight
-            />
           </View>
         </View>
       </TouchableOpacity>

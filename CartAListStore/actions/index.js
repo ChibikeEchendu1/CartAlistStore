@@ -1,5 +1,6 @@
 const emailvalid = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 const passwordVaild = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z]{8,}$/;
+import {showMessage, hideMessage} from 'react-native-flash-message';
 
 import {VARIABLES} from '../utils/Variables';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -20,6 +21,20 @@ export const PasswordChanged = text => {
   };
 };
 
+export const Input5Changed = text => {
+  return {
+    type: 'Input5_Changed',
+    payload: text,
+  };
+};
+
+export const TypeChanged = text => {
+  return {
+    type: 'Type_changed',
+    payload: text,
+  };
+};
+
 export const CodeChanged = text => {
   return {
     type: 'Code_Changed',
@@ -27,17 +42,17 @@ export const CodeChanged = text => {
   };
 };
 
-export const AddItemStore = (Code, Quantity, Price) => {
+export const AddItemStore = (Code, Quantity, Price, Name) => {
   return {
     type: 'Add_Item_Store',
-    payload: {Code, Quantity, Price},
+    payload: {Code, Quantity, Price, Name},
   };
 };
 
-export const AddItemNoBarCode = (Code, Price, Name) => {
+export const AddItemNoBarCode = (Code, Price, Name, Quantity) => {
   return {
     type: 'Add_Item_StoreNoBC',
-    payload: {Code, Name, Price},
+    payload: {Code, Name, Price, Quantity},
   };
 };
 
@@ -97,6 +112,8 @@ export const FetchStaff = () => async dispatch => {
 };
 
 export const AddFullList = items => async dispatch => {
+  //await AsyncStorage.removeItem('StoreItems');
+
   let token = await AsyncStorage.getItem('loginStaff'); // alow for both manager and clearck
   var Store = JSON.parse(token);
   dispatch({type: 'Spinner', payload: true});
@@ -118,12 +135,305 @@ export const AddFullList = items => async dispatch => {
   } else {
     await AsyncStorage.setItem('StoreItems', JSON.stringify(map));
   }
-
+  showMessage({
+    message: items.length + ' items sucessfully added',
+    description: 'Success',
+    type: 'default',
+    backgroundColor: 'green', // background color
+    color: 'white', // text color
+  });
   dispatch({type: 'Done', payload: res.data});
   dispatch({type: 'Spinner', payload: false});
 };
 
+export const setPromoNBC = (newPrice, Date, item) => {
+  console.log('we here');
+
+  return async dispatch => {
+    let token = await AsyncStorage.getItem('loginStaff');
+    var Store = JSON.parse(token);
+    dispatch({type: 'Spinner', payload: true});
+
+    const res = await axios.post(VARIABLES.IP + '/api/Store/app/setPromoNBC', {
+      newPrice,
+      Date,
+      item,
+      StoreId: Store.StoreId,
+      StoreName: Store.StoreName,
+    });
+
+    var map = res.data;
+    let StoreItems = await AsyncStorage.getItem('StoreItemsNBC');
+    let List = JSON.parse(StoreItems);
+    let merged = {...List, ...map};
+    await AsyncStorage.setItem('StoreItemsNBC', JSON.stringify(merged));
+    showMessage({
+      message: ' Promo sucessfully started',
+      description: 'Success',
+      type: 'default',
+      backgroundColor: 'green', // background color
+      color: 'white', // text color
+    });
+    dispatch({type: 'Added', payload: true});
+    dispatch({type: 'Spinner', payload: false});
+    dispatch({type: 'email_changed', payload: ''});
+  };
+};
+
+export const setPromo = (newPrice, Date, item) => {
+  console.log('we here');
+  return async dispatch => {
+    let token = await AsyncStorage.getItem('loginStaff');
+    var Store = JSON.parse(token);
+    dispatch({type: 'Spinner', payload: true});
+    const res = await axios.post(VARIABLES.IP + '/api/Store/app/setPromo', {
+      newPrice,
+      Date,
+      item,
+      StoreId: Store.StoreId,
+      StoreName: Store.StoreName,
+    });
+    var map = res.data;
+    let StoreItems = await AsyncStorage.getItem('StoreItems');
+    let List = JSON.parse(StoreItems);
+    let merged = {...List, ...map};
+    await AsyncStorage.setItem('StoreItems', JSON.stringify(merged));
+    showMessage({
+      message: ' Promo sucessfully started',
+      description: 'Success',
+      type: 'default',
+      backgroundColor: 'green', // background color
+      color: 'white', // text color
+    });
+    dispatch({type: 'Added', payload: true});
+    dispatch({type: 'Spinner', payload: false});
+    dispatch({type: 'email_changed', payload: ''});
+  };
+};
+
+export const ChangeNBC = (newPrice, Quantity, item, byweight) => {
+  return async dispatch => {
+    let token = await AsyncStorage.getItem('loginStaff');
+    var Store = JSON.parse(token);
+    dispatch({type: 'Spinner', payload: true});
+    const res = await axios.post(VARIABLES.IP + '/api/Store/app/ChangeNBC', {
+      newPrice,
+      Quantity,
+      item,
+      byweight,
+      StoreId: Store.StoreId,
+      StoreName: Store.StoreName,
+    });
+    var map = res.data;
+    let StoreItems = await AsyncStorage.getItem('StoreItemsNBC');
+    let List = JSON.parse(StoreItems);
+    let merged = {...List, ...map};
+    await AsyncStorage.setItem('StoreItemsNBC', JSON.stringify(merged));
+    showMessage({
+      message: item.Name + ' sucessfully changed',
+      description: 'Success',
+      type: 'default',
+      backgroundColor: 'green', // background color
+      color: 'white', // text color
+    });
+    dispatch({type: 'Added', payload: true});
+    dispatch({type: 'Spinner', payload: false});
+    dispatch({type: 'email_changed', payload: ''});
+  };
+};
+
+export const Change = (newPrice, Quantity, item, Name) => {
+  return async dispatch => {
+    let token = await AsyncStorage.getItem('loginStaff');
+    var Store = JSON.parse(token);
+    dispatch({type: 'Spinner', payload: true});
+    const res = await axios.post(VARIABLES.IP + '/api/Store/app/Change', {
+      newPrice,
+      Quantity,
+      item,
+      Name,
+      StoreId: Store.StoreId,
+      StoreName: Store.StoreName,
+    });
+    var map = res.data;
+    let StoreItems = await AsyncStorage.getItem('StoreItems');
+    let List = JSON.parse(StoreItems);
+    let merged = {...List, ...map};
+    await AsyncStorage.setItem('StoreItems', JSON.stringify(merged));
+    showMessage({
+      message: item.Name + ' sucessfully changed',
+      description: 'Success',
+      type: 'default',
+      backgroundColor: 'green', // background color
+      color: 'white', // text color
+    });
+    dispatch({type: 'Added', payload: true});
+    dispatch({type: 'Spinner', payload: false});
+    dispatch({type: 'email_changed', payload: ''});
+  };
+};
+
+export const sendEmailNBC = (msg, email, item) => {
+  return async dispatch => {
+    let token = await AsyncStorage.getItem('loginStaff');
+    var Store = JSON.parse(token);
+    dispatch({type: 'Spinner', payload: true});
+    const res = await axios.post(VARIABLES.IP + '/api/Store/app/sendEmailNBC', {
+      msg,
+      email,
+      item,
+      StoreId: Store.StoreId,
+      StoreName: Store.StoreName,
+    });
+
+    showMessage({
+      message: item.Name + ' Reorder Sent changed',
+      description: 'Success',
+      type: 'default',
+      backgroundColor: 'green', // background color
+      color: 'white', // text color
+    });
+    dispatch({type: 'Added', payload: true});
+    dispatch({type: 'Spinner', payload: false});
+    dispatch({type: 'email_changed', payload: ''});
+  };
+};
+
+export const sendEmailBC = (msg, email, item) => {
+  return async dispatch => {
+    let token = await AsyncStorage.getItem('loginStaff');
+    var Store = JSON.parse(token);
+    dispatch({type: 'Spinner', payload: true});
+    const res = await axios.post(VARIABLES.IP + '/api/Store/app/sendEmailBC', {
+      msg,
+      email,
+      item,
+      StoreId: Store.StoreId,
+      StoreName: Store.StoreName,
+    });
+
+    showMessage({
+      message: item.Name + ' Reorder Sent changed',
+      description: 'Success',
+      type: 'default',
+      backgroundColor: 'green', // background color
+      color: 'white', // text color
+    });
+    dispatch({type: 'Added', payload: true});
+    dispatch({type: 'Spinner', payload: false});
+    dispatch({type: 'email_changed', payload: ''});
+  };
+};
+
+export const sendTextNBC = (msg, mobile, item) => {
+  return async dispatch => {
+    let token = await AsyncStorage.getItem('loginStaff');
+    var Store = JSON.parse(token);
+    dispatch({type: 'Spinner', payload: true});
+    const res = await axios.post(VARIABLES.IP + '/api/Store/app/sendTextNBC', {
+      msg,
+      mobile,
+      item,
+      StoreId: Store.StoreId,
+      StoreName: Store.StoreName,
+    });
+
+    showMessage({
+      message: item.Name + ' Reorder Sent changed',
+      description: 'Success',
+      type: 'default',
+      backgroundColor: 'green', // background color
+      color: 'white', // text color
+    });
+    dispatch({type: 'Added', payload: true});
+    dispatch({type: 'Spinner', payload: false});
+    dispatch({type: 'email_changed', payload: ''});
+  };
+};
+
+export const sendTextBC = (msg, mobile, item) => {
+  return async dispatch => {
+    let token = await AsyncStorage.getItem('loginStaff');
+    var Store = JSON.parse(token);
+    dispatch({type: 'Spinner', payload: true});
+    const res = await axios.post(VARIABLES.IP + '/api/Store/app/sendTextBC', {
+      msg,
+      mobile,
+      item,
+      StoreId: Store.StoreId,
+      StoreName: Store.StoreName,
+    });
+
+    showMessage({
+      message: item.Name + ' Reorder Sent changed',
+      description: 'Success',
+      type: 'default',
+      backgroundColor: 'green', // background color
+      color: 'white', // text color
+    });
+    dispatch({type: 'Added', payload: true});
+    dispatch({type: 'Spinner', payload: false});
+    dispatch({type: 'email_changed', payload: ''});
+  };
+};
+
+export const Delete = item => {
+  return async dispatch => {
+    let token = await AsyncStorage.getItem('loginStaff');
+    var Store = JSON.parse(token);
+    dispatch({type: 'Spinner', payload: true});
+    const res = await axios.post(VARIABLES.IP + '/api/Store/app/Delete', {
+      item,
+      StoreId: Store.StoreId,
+      StoreName: Store.StoreName,
+    });
+    let StoreItems = await AsyncStorage.getItem('StoreItemsNBC');
+    let List = JSON.parse(StoreItems);
+    delete List[item.Search];
+    await AsyncStorage.setItem('StoreItemsNBC', JSON.stringify(List));
+    showMessage({
+      message: item.Name + ' sucessfully changed',
+      description: 'Success',
+      type: 'default',
+      backgroundColor: 'red', // background color
+      color: 'white', // text color
+    });
+    dispatch({type: 'Added', payload: true});
+    dispatch({type: 'Spinner', payload: false});
+    dispatch({type: 'email_changed', payload: ''});
+  };
+};
+
+export const DeleteBC = item => {
+  return async dispatch => {
+    let token = await AsyncStorage.getItem('loginStaff');
+    var Store = JSON.parse(token);
+    dispatch({type: 'Spinner', payload: true});
+    const res = await axios.post(VARIABLES.IP + '/api/Store/app/DeleteBC', {
+      item,
+      StoreId: Store.StoreId,
+      StoreName: Store.StoreName,
+    });
+    let StoreItems = await AsyncStorage.getItem('StoreItemsNBC');
+    let List = JSON.parse(StoreItems);
+    delete List[item.Code];
+    await AsyncStorage.setItem('StoreItemsNBC', JSON.stringify(List));
+    showMessage({
+      message: item.Name + ' sucessfully changed',
+      description: 'Success',
+      type: 'default',
+      backgroundColor: 'red', // background color
+      color: 'white', // text color
+    });
+    dispatch({type: 'Added', payload: true});
+    dispatch({type: 'Spinner', payload: false});
+    dispatch({type: 'email_changed', payload: ''});
+  };
+};
+
 export const addNoBCItems = items => async dispatch => {
+  //await AsyncStorage.removeItem('StoreItemsNBC');
+
   let token = await AsyncStorage.getItem('loginStaff'); // alow for both manager and clearck
   var Store = JSON.parse(token);
   dispatch({type: 'Spinner', payload: true});
@@ -132,11 +442,8 @@ export const addNoBCItems = items => async dispatch => {
     StoreType: Store.StoreType,
     items,
   });
-  var map = {};
-  for (let index = 0; index < items.length; index++) {
-    const element = items[index];
-    map[element.Name] = element;
-  }
+  var map = res.data;
+
   let StoreItems = await AsyncStorage.getItem('StoreItemsNBC');
   if (StoreItems) {
     let List = JSON.parse(StoreItems);
@@ -146,7 +453,15 @@ export const addNoBCItems = items => async dispatch => {
     await AsyncStorage.setItem('StoreItemsNBC', JSON.stringify(map));
   }
 
-  dispatch({type: 'Done', payload: res.data});
+  showMessage({
+    message: items.length + ' items sucessfully added',
+    description: 'Success',
+    type: 'default',
+    backgroundColor: 'green', // background color
+    color: 'white', // text color
+  });
+
+  dispatch({type: 'Done', payload: 'Done'});
   dispatch({type: 'Spinner', payload: false});
 };
 

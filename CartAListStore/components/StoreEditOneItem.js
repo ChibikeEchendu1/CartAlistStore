@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   SafeAreaView,
   Image,
+  Vibration,
   TouchableOpacity,
   StyleSheet,
   Platform,
@@ -15,7 +16,7 @@ import {
 } from 'react-native';
 import {VARIABLES} from '../utils/Variables';
 import _ from 'lodash';
-import {Input, Button, Card, CheckBox} from 'react-native-elements';
+import {Input, Button} from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {
   NameChanged,
@@ -32,7 +33,7 @@ const placeholder = {
   value: null,
   color: '#9EA0A4',
 };
-class EditOneItemNBCView extends Component {
+class StoreEditOneItem extends Component {
   constructor(props) {
     super(props);
 
@@ -42,10 +43,12 @@ class EditOneItemNBCView extends Component {
       value: '',
       item: this.props.route.params.item,
       items: this.props.route.params.items,
-      checked: this.props.route.params.item.Code,
     };
   }
 
+  componentDidMount() {
+    Vibration.vibrate(200);
+  }
   onEmailC(text) {
     this.props.NameChanged(text);
   }
@@ -80,28 +83,29 @@ class EditOneItemNBCView extends Component {
   }
 
   onButtonPress() {
-    const {password, name, email} = this.props;
+    const {password, name} = this.props;
 
-    if ((password == '' || name == '', email == '')) {
+    console.log(password, name, 'vals');
+
+    if (password == '' || name == '') {
       this.setState({Error: 'Enter All Feilds'});
     } else {
       this.setState({Error: ''});
       var newItems = this.state.items;
 
       // Find item index using _.findIndex (thanks @AJ Richardson for comment)
-      var index = _.findIndex(newItems, {Name: this.state.item.Name});
+      var index = _.findIndex(newItems, {Code: this.state.item.Code});
 
       newItems.splice(index, 1, {
-        Code: this.state.checked,
-        Name: name,
+        Code: this.state.item.Code,
+        Quantity: name,
         Price: password,
-        Quantity: email,
       });
 
       console.log(newItems);
 
-      this.props.navigation.navigate('Add-ItemNBC', {
-        items: newItems.reverse(),
+      this.props.navigation.navigate('ItemsConfirm', {
+        items: newItems,
       });
     }
   }
@@ -119,7 +123,7 @@ class EditOneItemNBCView extends Component {
       return (
         <Button
           onPress={this.onButtonPress.bind(this)}
-          title="Change"
+          title="Edit"
           type="outline"
           raised
           containerStyle={{
@@ -151,78 +155,39 @@ class EditOneItemNBCView extends Component {
             paddingTop: 15,
             justifyContent: 'center',
           }}>
-          <Card>
-            <Text style={{fontWeight: 'bold', marginLeft: '5%'}}>
-              Is the item prciced by weight or quantity{' '}
-            </Text>
-            <CheckBox
-              title="Price/Weight(1kg)"
-              onPress={() =>
-                this.setState({
-                  checked: !this.state.checked,
-                })
-              }
-              checked={this.state.checked}
-            />
+          <Text style={{display: 'flex', alignSelf: 'center', fontSize: 20}}>
+            {this.state.item.Code}
+          </Text>
+          <Input
+            placeholder={this.state.item.Quantity}
+            value={this.props.name}
+            onChangeText={this.onEmailC.bind(this)}
+            inputStyle={{}}
+            keyboardType="number-pad"
+            errorStyle={{color: 'red'}}
+            errorMessage={this.props.EmailError}
+            inputContainerStyle={{width: '90%', alignSelf: 'center'}}
+          />
+          <Input
+            placeholder={this.state.item.Price}
+            value={this.props.password}
+            onChangeText={this.onnameC.bind(this)}
+            inputStyle={{}}
+            keyboardType="number-pad"
+            errorStyle={{color: 'red'}}
+            errorMessage={this.props.EmailError}
+            inputContainerStyle={{
+              width: '90%',
+              alignSelf: 'center',
+              marginTop: 30,
+            }}
+          />
 
-            <CheckBox
-              title="Price/Quantity"
-              onPress={() =>
-                this.setState({
-                  checked: !this.state.checked,
-                })
-              }
-              checked={!this.state.checked}
-            />
+          <Text style={{color: 'red', alignSelf: 'center'}}>
+            {this.state.Error} {this.props.PasswordError}
+          </Text>
 
-            <Text style={{fontWeight: 'bold', marginTop: 20, marginLeft: '5%'}}>
-              Name, Price, Quantity
-            </Text>
-
-            <Input
-              placeholder={this.state.item.Name + ' (Name)'}
-              value={this.props.name}
-              onChangeText={this.onEmailC.bind(this)}
-              inputStyle={{}}
-              errorStyle={{color: 'red'}}
-              errorMessage={this.props.EmailError}
-              inputContainerStyle={{width: '90%', alignSelf: 'center'}}
-            />
-            <Input
-              placeholder={this.state.item.Price + ' (Price)'}
-              value={this.props.password}
-              onChangeText={this.onnameC.bind(this)}
-              inputStyle={{}}
-              keyboardType="number-pad"
-              errorStyle={{color: 'red'}}
-              errorMessage={this.props.EmailError}
-              inputContainerStyle={{
-                width: '90%',
-                alignSelf: 'center',
-                marginTop: 30,
-              }}
-            />
-
-            <Input
-              placeholder={this.state.item.Quantity + ' (Quantity)'}
-              value={this.props.email}
-              onChangeText={this.onSummeryC.bind(this)}
-              inputStyle={{}}
-              keyboardType="number-pad"
-              errorStyle={{color: 'red'}}
-              errorMessage={this.props.EmailError}
-              inputContainerStyle={{
-                width: '90%',
-                alignSelf: 'center',
-                marginTop: 30,
-              }}
-            />
-            <Text style={{color: 'red', alignSelf: 'center'}}>
-              {this.state.Error} {this.props.PasswordError}
-            </Text>
-
-            {this.renderButton()}
-          </Card>
+          {this.renderButton()}
 
           {this.added()}
         </SafeAreaView>
@@ -285,4 +250,10 @@ export default connect(
     PasswordChanged,
     AddProspect,
   },
-)(EditOneItemNBCView);
+)(StoreEditOneItem);
+
+/* edit price
+promo price
+reorder ,low stock notifications
+delete,
+*/

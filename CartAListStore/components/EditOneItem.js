@@ -79,11 +79,11 @@ class EditOneItemView extends Component {
   }
 
   onButtonPress() {
-    const {password, name} = this.props;
+    const {password, name, email} = this.props;
 
     console.log(password, name, 'vals');
 
-    if (password == '' || name == '') {
+    if ((password == '' || name == '', email == '')) {
       this.setState({Error: 'Enter All Feilds'});
     } else {
       this.setState({Error: ''});
@@ -96,6 +96,7 @@ class EditOneItemView extends Component {
         Code: this.state.item.Code,
         Quantity: name,
         Price: password,
+        Name: email,
       });
 
       console.log(newItems);
@@ -155,6 +156,15 @@ class EditOneItemView extends Component {
             {this.state.item.Code}
           </Text>
           <Input
+            placeholder={this.state.item.Name}
+            value={this.props.email}
+            onChangeText={this.onSummeryC.bind(this)}
+            inputStyle={{}}
+            errorStyle={{color: 'red'}}
+            errorMessage={this.props.EmailError}
+            inputContainerStyle={{width: '90%', alignSelf: 'center'}}
+          />
+          <Input
             placeholder={this.state.item.Quantity}
             value={this.props.name}
             onChangeText={this.onEmailC.bind(this)}
@@ -162,7 +172,11 @@ class EditOneItemView extends Component {
             keyboardType="number-pad"
             errorStyle={{color: 'red'}}
             errorMessage={this.props.EmailError}
-            inputContainerStyle={{width: '90%', alignSelf: 'center'}}
+            inputContainerStyle={{
+              width: '90%',
+              alignSelf: 'center',
+              marginTop: 30,
+            }}
           />
           <Input
             placeholder={this.state.item.Price}

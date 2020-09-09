@@ -19,7 +19,7 @@ import FindPosition from '../utils/FindPosition';
 
 const barWidth = Dimensions.get('screen').width - 40;
 
-class ItemList extends Component {
+class OptionBox extends Component {
   constructor(props) {
     super(props);
 
@@ -28,45 +28,36 @@ class ItemList extends Component {
 
   render() {
     return (
-      <Card title={this.props.item.Code ? 'Per Weight' : 'Per Quantity'}>
+      <TouchableOpacity
+        onPress={this.props.onPress}
+        style={{
+          borderWidth: 0.4,
+          padding: 4,
+          width: '45%',
+          backgroundColor: this.props.color,
+          borderRadius: 10,
+        }}>
         <View
           style={{
-            marginTop: 5,
-            marginLeft: 7,
-            borderBottomWidth: 0.4,
-            paddingBottom: 8,
             display: 'flex',
             flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
           }}>
-          <TouchableOpacity
-            onPress={() => {
-              this.props.navigation.navigate('EditOneItemNBC', {
-                item: this.props.item,
-                items: this.props.items,
-              });
-            }}
-            style={{
-              display: 'flex',
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'flex-start',
-
-              width: '80%',
-            }}>
-            <View style={{marginLeft: 14}}>
-              <Text>Name: {this.props.item.Name}</Text>
-              <Text>Price: {this.props.item.Price}</Text>
-              <Text>Quantity: {this.props.item.Quantity}</Text>
-            </View>
-          </TouchableOpacity>
+          <View style={{marginLeft: 7}}>
+            <Text>{this.props.Option}</Text>
+          </View>
           <Icon
-            name="chevron-right"
+            name={this.props.icon}
             color={VARIABLES.lightGray}
             size={24}
             style={{alignSelf: 'center'}}
           />
         </View>
-      </Card>
+        <View style={{marginLeft: 7, marginTop: 7}}>
+          <Text>{this.props.descrtiption}</Text>
+        </View>
+      </TouchableOpacity>
     );
   }
 }
@@ -93,4 +84,4 @@ const mapStateToProps = state => {
   };
 };
 
-export default connect(mapStateToProps)(ItemList);
+export default connect(mapStateToProps)(OptionBox);

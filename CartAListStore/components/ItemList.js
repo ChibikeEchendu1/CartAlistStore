@@ -28,7 +28,10 @@ class ItemList extends Component {
 
   render() {
     return (
-      <Card title={'Barcode: ' + this.props.item.Code}>
+      <Card
+        title={
+          'Barcode: ' + this.props.item.Code + '\n' + this.props.item.Name
+        }>
         <View
           style={{
             marginTop: 5,

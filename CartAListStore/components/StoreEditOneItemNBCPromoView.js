@@ -15,8 +15,10 @@ import {
 } from 'react-native';
 import {VARIABLES} from '../utils/Variables';
 import _ from 'lodash';
-import {Input, Button, Card, CheckBox} from 'react-native-elements';
+import {Input, Button, Card, CheckBox, normalize} from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
+
 import {
   NameChanged,
   AddressChanged,
@@ -24,6 +26,7 @@ import {
   emailChanged,
   PasswordChanged,
   AddProspect,
+  setPromoNBC,
 } from '../actions';
 import {connect} from 'react-redux';
 
@@ -32,7 +35,7 @@ const placeholder = {
   value: null,
   color: '#9EA0A4',
 };
-class EditOneItemNBCView extends Component {
+class StoreEditOneItemNBCView extends Component {
   constructor(props) {
     super(props);
 
@@ -43,6 +46,10 @@ class EditOneItemNBCView extends Component {
       item: this.props.route.params.item,
       items: this.props.route.params.items,
       checked: this.props.route.params.item.Code,
+      isDatePickerVisible: false,
+      setDatePickerVisibility: false,
+      Date: '',
+      Error2: '',
     };
   }
 
@@ -74,15 +81,14 @@ class EditOneItemNBCView extends Component {
 
   added() {
     if (this.props.Added) {
-      this.props.navigation.navigate('Searchprospect');
-      this.props.navigation.navigate('ProfileScreen');
+      this.props.navigation.navigate('Add-ItemNBC');
     }
   }
 
   onButtonPress() {
-    const {password, name, email} = this.props;
+    const {password, name} = this.props;
 
-    if ((password == '' || name == '', email == '')) {
+    if (password == '' || name == '') {
       this.setState({Error: 'Enter All Feilds'});
     } else {
       this.setState({Error: ''});
@@ -95,7 +101,6 @@ class EditOneItemNBCView extends Component {
         Code: this.state.checked,
         Name: name,
         Price: password,
-        Quantity: email,
       });
 
       console.log(newItems);
@@ -106,11 +111,15 @@ class EditOneItemNBCView extends Component {
     }
   }
 
+  hideDatePicker() {
+    this.setState({setDatePickerVisibility: false});
+  }
+
   renderButton() {
     if (this.props.Loader) {
       return (
         <ActivityIndicator
-          style={{marginTop: 10, alignSelf: 'center'}}
+          style={{alignSelf: 'center'}}
           color={VARIABLES.Color}
           size={'large'}
         />
@@ -123,7 +132,6 @@ class EditOneItemNBCView extends Component {
           type="outline"
           raised
           containerStyle={{
-            marginTop: 20,
             alignSelf: 'flex-end',
             marginRight: 20,
             width: '50%',
@@ -152,8 +160,140 @@ class EditOneItemNBCView extends Component {
             justifyContent: 'center',
           }}>
           <Card>
-            <Text style={{fontWeight: 'bold', marginLeft: '5%'}}>
-              Is the item prciced by weight or quantity{' '}
+            <Text
+              style={{
+                fontWeight: 'bold',
+                fontSize: normalize(15),
+                marginLeft: 20,
+              }}>
+              Promo Price{' '}
+            </Text>
+
+            <Input
+              placeholder={'Promo Price'}
+              value={this.props.email}
+              onChangeText={this.onSummeryC.bind(this)}
+              inputStyle={{}}
+              keyboardType="number-pad"
+              errorStyle={{color: 'red'}}
+              errorMessage={this.props.EmailError}
+              inputContainerStyle={{
+                width: '90%',
+                alignSelf: 'center',
+              }}
+            />
+            <Text style={{alignSelf: 'center'}}>{this.state.Date}</Text>
+            <Text style={{color: 'red', alignSelf: 'center'}}>
+              {this.state.Error2}
+            </Text>
+            <Button
+              title="End Date"
+              raised
+              containerStyle={{
+                alignSelf: 'flex-end',
+                marginRight: 20,
+                width: '50%',
+              }}
+              titleStyle={{color: 'white', marginRight: 10}}
+              buttonStyle={{
+                backgroundColor: VARIABLES.anotherGreen,
+                borderColor: VARIABLES.anotherGreen,
+                width: '100%',
+              }}
+              icon={<Icon name="calendar" size={20} color="white" />}
+              iconRight
+              onPress={() => {
+                this.setState({
+                  setDatePickerVisibility: true,
+                  isDatePickerVisible: true,
+                });
+              }}
+            />
+
+            {this.props.Loader ? (
+              <ActivityIndicator
+                style={{alignSelf: 'center'}}
+                color={VARIABLES.Color}
+                size={'large'}
+              />
+            ) : (
+              <Button
+                title="Done"
+                raised
+                containerStyle={{
+                  alignSelf: 'flex-end',
+                  marginRight: 20,
+                  width: '50%',
+                  marginTop: 10,
+                }}
+                titleStyle={{color: 'white', marginRight: 10}}
+                buttonStyle={{
+                  backgroundColor: VARIABLES.Color,
+                  borderColor: VARIABLES.Color,
+                  width: '100%',
+                }}
+                icon={<Icon name="check" size={20} color="white" />}
+                iconRight
+                onPress={() => {
+                  if (this.props.email == '') {
+                    this.setState({
+                      Error2: 'Enter Price',
+                    });
+                  } else if (this.state.Date == '') {
+                    this.setState({
+                      Error2: 'Select Ending Day',
+                      setDatePickerVisibility: true,
+                      isDatePickerVisible: true,
+                    });
+                  } else {
+                    console.log(this.state.Date);
+                    this.setState({
+                      Error2: '',
+                    });
+                    this.props.setPromoNBC(
+                      this.props.email,
+                      this.state.Date,
+                      this.state.item,
+                    );
+                  }
+                  this.setState({});
+                }}
+              />
+            )}
+            <DateTimePickerModal
+              isVisible={this.state.isDatePickerVisible}
+              mode="date"
+              onConfirm={date => {
+                var year = date.getFullYear();
+
+                var month = date.getMonth() + 1;
+                month = (month < 10 ? '0' : '') + month;
+
+                var day = date.getDate();
+                day = (day < 10 ? '0' : '') + day;
+
+                this.setState({
+                  setDatePickerVisibility: false,
+                  isDatePickerVisible: false,
+                  Date: month + '/' + day + '/' + year,
+                });
+              }}
+              onCancel={() => {
+                this.setState({
+                  setDatePickerVisibility: false,
+                  isDatePickerVisible: false,
+                });
+              }}
+            />
+          </Card>
+          <Card>
+            <Text
+              style={{
+                fontWeight: 'bold',
+                fontSize: normalize(15),
+                marginLeft: 20,
+              }}>
+              Permanent Change
             </Text>
             <CheckBox
               title="Price/Weight(1kg)"
@@ -175,21 +315,26 @@ class EditOneItemNBCView extends Component {
               checked={!this.state.checked}
             />
 
-            <Text style={{fontWeight: 'bold', marginTop: 20, marginLeft: '5%'}}>
-              Name, Price, Quantity
-            </Text>
-
             <Input
-              placeholder={this.state.item.Name + ' (Name)'}
+              placeholder={this.state.item.Name}
               value={this.props.name}
               onChangeText={this.onEmailC.bind(this)}
               inputStyle={{}}
+              keyboardType="number-pad"
               errorStyle={{color: 'red'}}
               errorMessage={this.props.EmailError}
               inputContainerStyle={{width: '90%', alignSelf: 'center'}}
             />
             <Input
-              placeholder={this.state.item.Price + ' (Price)'}
+              placeholder={
+                this.state.item.promoPrice
+                  ? 'promo (' +
+                    this.state.item.Price +
+                    ') Original (' +
+                    this.state.item.promoPrice +
+                    ')'
+                  : this.state.item.Price
+              }
               value={this.props.password}
               onChangeText={this.onnameC.bind(this)}
               inputStyle={{}}
@@ -199,28 +344,11 @@ class EditOneItemNBCView extends Component {
               inputContainerStyle={{
                 width: '90%',
                 alignSelf: 'center',
-                marginTop: 30,
-              }}
-            />
-
-            <Input
-              placeholder={this.state.item.Quantity + ' (Quantity)'}
-              value={this.props.email}
-              onChangeText={this.onSummeryC.bind(this)}
-              inputStyle={{}}
-              keyboardType="number-pad"
-              errorStyle={{color: 'red'}}
-              errorMessage={this.props.EmailError}
-              inputContainerStyle={{
-                width: '90%',
-                alignSelf: 'center',
-                marginTop: 30,
               }}
             />
             <Text style={{color: 'red', alignSelf: 'center'}}>
               {this.state.Error} {this.props.PasswordError}
             </Text>
-
             {this.renderButton()}
           </Card>
 
@@ -284,5 +412,10 @@ export default connect(
     emailChanged,
     PasswordChanged,
     AddProspect,
+    setPromoNBC,
   },
-)(EditOneItemNBCView);
+)(StoreEditOneItemNBCView);
+
+/*
+when you press sumbit. check if there is network. to add item you need to be connected to network.
+*/

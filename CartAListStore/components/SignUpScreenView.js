@@ -52,7 +52,7 @@ class SignOutScreenView extends Component {
           color="#F44336"
           size={'small'}
         />
-      ); //
+      );
     } else {
       return (
         <Button

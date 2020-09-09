@@ -6,13 +6,16 @@ const INITIAL_STATE = {
   Name: '',
   staff: [],
   items: [],
+  type: '',
   itemsNoBC: [],
   NameError: '',
   CodeError: '',
   EmailError: '',
+  Added: false,
   Done: false,
   PasswordError: '',
   Loader: false,
+  input5: '',
   Boss: false,
   Manager: false,
   new: false,
@@ -30,14 +33,21 @@ export default (state = INITIAL_STATE, action) => {
       return {...state, Code: action.payload};
     case 'Name_Changed':
       return {...state, Name: action.payload};
+    case 'Type_changed':
+      return {...state, type: action.payload};
     case 'Email_Error':
       return {...state, EmailError: action.payload};
+    case 'Input5_Changed':
+      return {...state, input5: action.payload};
+    case 'Added':
+      return {...state, Added: true};
     case 'Add_Item_Store':
       return {
         ...state,
         items: [...state.items, action.payload],
         Code: '',
         Name: '',
+        email: '',
       };
     case 'Add_Item_StoreNoBC':
       return {
@@ -45,6 +55,7 @@ export default (state = INITIAL_STATE, action) => {
         itemsNoBC: [...state.itemsNoBC, action.payload],
         Code: '',
         Name: '',
+        email: '',
       };
     case 'Code_Error':
       return {...state, CodeError: action.payload};

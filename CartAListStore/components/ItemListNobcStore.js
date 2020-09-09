@@ -19,16 +19,44 @@ import FindPosition from '../utils/FindPosition';
 
 const barWidth = Dimensions.get('screen').width - 40;
 
-class ItemList extends Component {
+class ItemListNobcStore extends Component {
   constructor(props) {
     super(props);
 
     this.state = {namegoogle: '', emailgoogle: '', value: 20};
   }
 
+  componentDidMount() {
+    console.log(this.props.item);
+  }
+
   render() {
     return (
-      <Card title={this.props.item.Code ? 'Per Weight' : 'Per Quantity'}>
+      <Card
+        title={
+          <TouchableOpacity
+            onPress={() => {
+              this.props.navigation.navigate('View Item', {
+                item: this.props.item,
+              });
+            }}
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+            }}>
+            <Text>
+              Name: {this.props.item.Name} {'\n'}Code:
+              {this.props.item.SearchCode}
+            </Text>
+            <Icon
+              name="chevron-right"
+              color={VARIABLES.lightGray}
+              size={24}
+              style={{alignSelf: 'center'}}
+            />
+          </TouchableOpacity>
+        }>
         <View
           style={{
             marginTop: 5,
@@ -37,35 +65,7 @@ class ItemList extends Component {
             paddingBottom: 8,
             display: 'flex',
             flexDirection: 'row',
-          }}>
-          <TouchableOpacity
-            onPress={() => {
-              this.props.navigation.navigate('EditOneItemNBC', {
-                item: this.props.item,
-                items: this.props.items,
-              });
-            }}
-            style={{
-              display: 'flex',
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'flex-start',
-
-              width: '80%',
-            }}>
-            <View style={{marginLeft: 14}}>
-              <Text>Name: {this.props.item.Name}</Text>
-              <Text>Price: {this.props.item.Price}</Text>
-              <Text>Quantity: {this.props.item.Quantity}</Text>
-            </View>
-          </TouchableOpacity>
-          <Icon
-            name="chevron-right"
-            color={VARIABLES.lightGray}
-            size={24}
-            style={{alignSelf: 'center'}}
-          />
-        </View>
+          }}></View>
       </Card>
     );
   }
@@ -93,4 +93,4 @@ const mapStateToProps = state => {
   };
 };
 
-export default connect(mapStateToProps)(ItemList);
+export default connect(mapStateToProps)(ItemListNobcStore);

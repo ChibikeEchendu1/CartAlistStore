@@ -54,6 +54,10 @@ class AddItemScreenNBCView extends Component {
     this.props.CodeChanged(text);
   }
 
+  onQuantityC(text) {
+    this.props.emailChanged(text);
+  }
+
   move() {
     if (this.props.new) {
       this.props.navigation.navigate('AuthScreen');
@@ -70,7 +74,7 @@ class AddItemScreenNBCView extends Component {
 
   onAddPress() {
     this.setState({Current: '', found: false, error: ''});
-    if (FindStateAddNoBC(this.props.Code, this.props.Name)) {
+    if (FindStateAddNoBC(this.props.Code, this.props.Name, this.props.email)) {
       this.setState({
         items: [
           ...this.state.items,
@@ -78,6 +82,7 @@ class AddItemScreenNBCView extends Component {
             Code: this.state.checked,
             Name: this.props.Name,
             Price: this.props.Code,
+            Quantity: this.props.email,
           },
         ],
       });
@@ -177,30 +182,6 @@ class AddItemScreenNBCView extends Component {
       <SafeAreaView>
         <View>
           <Card>
-            <Text style={{fontWeight: 'bold'}}>
-              Is the item prciced by weight or quantity{' '}
-            </Text>
-            <CheckBox
-              title="Price/Weight(1kg)"
-              onPress={() =>
-                this.setState({
-                  checked: !this.state.checked,
-                })
-              }
-              checked={this.state.checked}
-            />
-
-            <CheckBox
-              title="Price/Quantity"
-              onPress={() =>
-                this.setState({
-                  checked: !this.state.checked,
-                })
-              }
-              checked={!this.state.checked}
-            />
-          </Card>
-          <Card>
             <View
               style={{
                 display: 'flex',
@@ -208,9 +189,11 @@ class AddItemScreenNBCView extends Component {
                 alignSelf: 'flex-end',
                 justifyContent: 'flex-end',
                 alignItems: 'center',
-                marginBottom: 20,
+                marginBottom: 10,
               }}>
-              <Text style={{color: 'black'}}>Barcode Item</Text>
+              <Text style={{color: 'black', fontWeight: 'bold'}}>
+                By Weight or Quantity{' '}
+              </Text>
               <Button
                 onPress={() => {
                   this.props.navigation.navigate('Barcode');
@@ -234,6 +217,34 @@ class AddItemScreenNBCView extends Component {
                 iconRight
               />
             </View>
+            <View
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                width: '90%',
+              }}>
+              <CheckBox
+                title="Weight(1kg)"
+                onPress={() =>
+                  this.setState({
+                    checked: !this.state.checked,
+                  })
+                }
+                checked={this.state.checked}
+                containerStyle={{width: '48%'}}
+              />
+              <CheckBox
+                title="Quantity"
+                onPress={() =>
+                  this.setState({
+                    checked: !this.state.checked,
+                  })
+                }
+                checked={!this.state.checked}
+                containerStyle={{width: '48%'}}
+              />
+            </View>
             <Input
               placeholder="Item Name"
               value={this.props.Name}
@@ -252,6 +263,24 @@ class AddItemScreenNBCView extends Component {
               }}
             />
             {this.renderInput()}
+            <Input
+              placeholder="Quantity In Stock"
+              value={this.props.email}
+              onChangeText={this.onQuantityC.bind(this)}
+              errorStyle={{color: 'red'}}
+              inputStyle={{
+                marginLeft: 7,
+                color: 'black',
+              }}
+              placeholderTextColor="#000"
+              keyboardType="number-pad"
+              errorMessage={this.props.NameError}
+              inputContainerStyle={{
+                width: '100%',
+                borderWidth: 0.3,
+                // marginTop: 30,
+              }}
+            />
             <View style={{display: 'flex', flexDirection: 'row'}}>
               <Button
                 onPress={this.onAddPress.bind(this)}
@@ -269,8 +298,13 @@ class AddItemScreenNBCView extends Component {
                   backgroundColor: FindStateNoBc(
                     this.props.Code,
                     this.props.Name,
+                    this.props.email,
                   ),
-                  borderColor: FindStateNoBc(this.props.Code, this.props.Name),
+                  borderColor: FindStateNoBc(
+                    this.props.Code,
+                    this.props.Name,
+                    this.props.email,
+                  ),
                   width: '100%',
                 }}
                 icon={<Icon name="plus-circle" size={20} color="white" />}
@@ -278,8 +312,10 @@ class AddItemScreenNBCView extends Component {
               />
               <Button
                 onPress={() => {
-                  this.props.addNoBCItems(this.state.items);
-                  this.setState({items: []});
+                  if (this.state.items.length > 0) {
+                    this.props.addNoBCItems(this.state.items);
+                    this.setState({items: []});
+                  }
                 }}
                 title="Submit"
                 type="outline"
@@ -293,11 +329,11 @@ class AddItemScreenNBCView extends Component {
                 titleStyle={{color: 'white', marginRight: 10}}
                 buttonStyle={{
                   backgroundColor:
-                    this.props.itemsNoBC.length > 0
+                    this.state.items.length > 0
                       ? VARIABLES.green2
                       : VARIABLES.oragne,
                   borderColor:
-                    this.props.itemsNoBC.length > 0
+                    this.state.items.length > 0
                       ? VARIABLES.green2
                       : VARIABLES.oragne,
                   width: '100%',
